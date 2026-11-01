@@ -1,0 +1,19 @@
+@model TenantViewModel
+@{
+    ViewData["Title"] = "Tạo doanh nghiệp";
+}
+
+<div class="page-header"><h1>Tạo doanh nghiệp mới</h1></div>
+
+<div class="card p-3" style="max-width: 640px">
+    <p class="text-muted">Bạn sẽ là quản trị của doanh nghiệp này và có thể mời thành viên vào sau.</p>
+    <form asp-action="Create" method="post">
+        <partial name="_TenantFields" model="Model" />
+        <button type="submit" class="btn btn-primary">Tạo doanh nghiệp</button>
+        <a asp-action="Switch" class="btn btn-link">Chọn doanh nghiệp đã tham gia</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

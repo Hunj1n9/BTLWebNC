@@ -1,0 +1,58 @@
+@model List<ThanhVienDoanhNghiep>
+
+@if (!Model.Any())
+{
+    <p class="text-muted mb-0">Không tìm thấy thành viên nào.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Nhóm</th><th>Trạng thái</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model)
+                {
+                    bool laToi = m.MaThanhVien == Me.MemberId;
+                    <tr class="@(m.TrangThai ? "" : "text-muted")">
+                        <td>@m.NguoiDung.HoTen @if (laToi) { <span class="tag">Bạn</span> }</td>
+                        <td>@m.NguoiDung.Email</td>
+                        <td>
+                            @if (laToi)
+                            {
+                                @ViewHelper.RoleName(m.VaiTro)
+                            }
+                            else
+                            {
+                                <form asp-controller="Member" asp-action="ChangeRole" method="post" class="d-flex gap-1">
+                                    <input type="hidden" name="maThanhVien" value="@m.MaThanhVien" />
+                                    <select name="vaiTro" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        <option value="@VaiTros.Member" selected="@(m.VaiTro == VaiTros.Member)">Thành viên</option>
+                                        <option value="@VaiTros.TenantAdmin" selected="@(m.VaiTro == VaiTros.TenantAdmin)">Quản trị</option>
+                                    </select>
+                                </form>
+                            }
+                        </td>
+                        <td>@string.Join(", ", m.ThanhVienNhoms.Select(x => x.NhomLamViec.TenNhom))</td>
+                        <td>
+                            <span class="pill @(m.TrangThai ? "status-hoanthanh" : "status-chualam")">@(m.TrangThai ? "Hoạt động" : "Vô hiệu hóa")</span>
+                        </td>
+                        <td>
+                            @if (!laToi)
+                            {
+                                <form asp-controller="Member" asp-action="Deactivate" method="post"
+                                      onsubmit="return confirm('Bạn chắc chắn muốn thay đổi trạng thái thành viên này?')">
+                                    <input type="hidden" name="maThanhVien" value="@m.MaThanhVien" />
+                                    <button type="submit" class="btn btn-sm @(m.TrangThai ? "btn-outline-danger" : "btn-outline-success")">
+                                        @(m.TrangThai ? "Vô hiệu hóa" : "Kích hoạt")
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

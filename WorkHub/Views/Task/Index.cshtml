@@ -1,0 +1,76 @@
+@model TaskFilterViewModel
+@{
+    ViewData["Title"] = Model.ChiCuaToi ? "Công việc của tôi" : "Công việc";
+}
+
+<div class="page-header">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <div class="sub">Lọc theo từ khóa, trạng thái, người phụ trách và thời hạn</div>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Tạo công việc</a>
+</div>
+
+<div class="card p-3">
+    @* Bộ lọc (BM10) - gửi bằng AJAX, chỉ thay phần danh sách *@
+    <form id="filterForm" class="row g-2 mb-3">
+        <input type="hidden" asp-for="ChiCuaToi" />
+        <div class="col-12 col-md-4">
+            <input asp-for="TuKhoa" class="form-control" placeholder="Từ khóa trong tên công việc" />
+        </div>
+        <div class="col-6 col-md-2">
+            <select asp-for="TrangThai" class="form-select">
+                <option value="">Mọi trạng thái</option>
+                @foreach (var s in TrangThaiCV.TatCa)
+                {
+                    <option value="@s">@s</option>
+                }
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <select asp-for="MaNguoiThucHien" asp-items="ViewBag.Members" class="form-select">
+                <option value="">Mọi người</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <input asp-for="HanTu" type="date" class="form-control" title="Hạn từ ngày" />
+        </div>
+        <div class="col-6 col-md-2">
+            <input asp-for="HanDen" type="date" class="form-control" title="Hạn đến ngày" />
+        </div>
+    </form>
+
+    <div id="taskList">
+        <partial name="_TaskList" model="(List<CongViec>)ViewBag.Tasks" />
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var form = document.getElementById('filterForm');
+
+        async function search() {
+            var params = new URLSearchParams(new FormData(form)).toString();
+            document.getElementById('taskList').innerHTML = await ajaxGet('/Task/Search?' + params);
+        }
+
+        form.addEventListener('input', debounce(search, 300));
+        form.addEventListener('change', search);
+        form.addEventListener('submit', function (e) { e.preventDefault(); search(); });
+
+        // AJAX: đổi trạng thái ngay trong danh sách
+        document.getElementById('taskList').addEventListener('change', async function (e) {
+            if (!e.target.classList.contains('status-select')) return;
+            var select = e.target;
+            var result = await ajaxPost('/Task/UpdateStatus', { maCongViec: select.dataset.id, trangThai: select.value });
+            if (!result.success) {
+                alert(result.message);
+                select.value = select.dataset.old;
+                return;
+            }
+            select.dataset.old = result.trangThai;
+            select.classList.add('is-valid');
+            setTimeout(function () { select.classList.remove('is-valid'); }, 1000);
+        });
+    </script>
+}

@@ -1,0 +1,30 @@
+@model TenantViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+<div class="mb-3">
+    <label asp-for="TenDoanhNghiep" class="form-label"></label>
+    <input asp-for="TenDoanhNghiep" class="form-control" />
+    <span asp-validation-for="TenDoanhNghiep" class="text-danger small"></span>
+</div>
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="SoDienThoai" class="form-label"></label>
+        <input asp-for="SoDienThoai" class="form-control" />
+        <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
+    </div>
+</div>
+<div class="mb-3">
+    <label asp-for="DiaChi" class="form-label"></label>
+    <input asp-for="DiaChi" class="form-control" />
+    <span asp-validation-for="DiaChi" class="text-danger small"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="MoTa" class="form-label"></label>
+    <textarea asp-for="MoTa" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="MoTa" class="text-danger small"></span>
+</div>

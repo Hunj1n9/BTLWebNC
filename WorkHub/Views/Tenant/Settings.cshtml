@@ -1,0 +1,57 @@
+@model TenantViewModel
+@{
+    ViewData["Title"] = "Thông tin doanh nghiệp";
+}
+
+<div class="page-header"><h1>Thông tin doanh nghiệp</h1></div>
+
+<div class="card p-3" style="max-width: 720px">
+    <form asp-action="Settings" method="post" enctype="multipart/form-data">
+        <partial name="_TenantFields" model="Model" />
+
+        <div class="mb-3">
+            <label asp-for="Logo" class="form-label"></label>
+            <div class="d-flex align-items-center gap-3">
+                @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                {
+                    <img src="@Model.LogoUrl" alt="Logo hiện tại" id="logoPreview" style="height:64px" />
+                }
+                else
+                {
+                    <img alt="Xem trước logo" id="logoPreview" style="height:64px; display:none" />
+                }
+                <input asp-for="Logo" type="file" class="form-control" accept=".jpg,.jpeg,.png" />
+            </div>
+            <span asp-validation-for="Logo" class="text-danger small" id="logoError"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Kiểm tra file logo phía client và xem trước ảnh
+        document.getElementById('Logo').addEventListener('change', function () {
+            var file = this.files[0];
+            var error = document.getElementById('logoError');
+            error.textContent = '';
+            if (!file) return;
+
+            if (!/\.(jpe?g|png)$/i.test(file.name)) {
+                error.textContent = 'Chỉ chấp nhận file JPG hoặc PNG.';
+                this.value = '';
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                error.textContent = 'File logo tối đa 2MB.';
+                this.value = '';
+                return;
+            }
+            var img = document.getElementById('logoPreview');
+            img.src = URL.createObjectURL(file);
+            img.style.display = '';
+        });
+    </script>
+}

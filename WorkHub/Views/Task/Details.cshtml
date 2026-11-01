@@ -1,0 +1,114 @@
+@model CongViec
+@{
+    ViewData["Title"] = Model.TenCongViec;
+    bool coTheSua = ViewBag.CoTheSua;
+    bool coTheXoa = ViewBag.CoTheXoa;
+    bool coTheDoiTrangThai = ViewBag.CoTheDoiTrangThai;
+}
+
+<div class="page-header">
+    <div>
+        <h1>@Model.TenCongViec</h1>
+        <div class="sub">
+            Thuộc nhóm <a asp-controller="Group" asp-action="Details" asp-route-id="@Model.MaNhom">@Model.NhomLamViec.TenNhom</a>
+            · giao bởi @Model.NguoiGiao.NguoiDung.HoTen
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        @if (coTheSua)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.MaCongViec" class="btn btn-light">Sửa</a>
+        }
+        @if (coTheXoa)
+        {
+            <form asp-action="Delete" asp-route-id="@Model.MaCongViec" method="post"
+                  onsubmit="return confirm('Xóa công việc này? Các bình luận cũng sẽ bị xóa.')">
+                <button type="submit" class="btn btn-outline-danger">Xóa</button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-5">
+        <div class="card mb-3">
+            <div class="panel-head">
+                <h2>Thông tin</h2>
+                <span class="@ViewHelper.StatusClass(Model.TrangThai)" id="statusBadge">@Model.TrangThai</span>
+            </div>
+            <div class="panel-body">
+                <dl class="info-list">
+                    <div><dt>Người thực hiện</dt><dd>@Model.NguoiThucHien.NguoiDung.HoTen</dd></div>
+                    <div><dt>Ngày bắt đầu</dt><dd>@Model.NgayBatDau.ToString("dd/MM/yyyy")</dd></div>
+                    <div>
+                        <dt>Hạn hoàn thành</dt>
+                        <dd class="@(ViewHelper.QuaHan(Model) ? "overdue" : "")">@Model.HanHoanThanh.ToString("dd/MM/yyyy")@(ViewHelper.QuaHan(Model) ? " (quá hạn)" : "")</dd>
+                    </div>
+                    <div><dt>Độ ưu tiên</dt><dd><span class="@ViewHelper.PriorityClass(Model.DoUuTien)">@Model.DoUuTien</span></dd></div>
+                </dl>
+
+                @if (coTheDoiTrangThai)
+                {
+                    <div class="mt-3">
+                        <div class="small text-muted mb-2">Cập nhật trạng thái</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var s in TrangThaiCV.TatCa)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-primary btn-status @(s == Model.TrangThai ? "active" : "")" data-status="@s">@s</button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="panel-head"><h2>Mô tả</h2></div>
+            <div class="panel-body">
+                <p class="mb-0" style="white-space: pre-wrap">@(string.IsNullOrEmpty(Model.MoTa) ? "Chưa có mô tả." : Model.MoTa)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-7">
+        <div class="card">
+            <div class="panel-head">
+                <h2>Bình luận</h2>
+                <span class="text-muted small">Gõ @@Họ Tên để nhắc tên</span>
+            </div>
+            <div class="panel-body">
+                <div id="commentBox" class="chat-box mb-2"></div>
+                <form id="commentForm" class="d-flex gap-2">
+                    <input id="commentInput" class="form-control" maxlength="2000" placeholder="Viết bình luận..." autocomplete="off" />
+                    <button type="submit" class="btn btn-primary">Gửi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var maCongViec = @Model.MaCongViec;
+
+        // Khung bình luận công việc (AJAX)
+        initChat({ box: 'commentBox', form: 'commentForm', input: 'commentInput', query: { maCongViec: maCongViec } });
+
+        // AJAX: cập nhật trạng thái, nhận JSON rồi đổi nhãn mà không tải lại trang
+        var classes = { 'Chưa làm': 'status-chualam', 'Đang làm': 'status-danglam', 'Hoàn thành': 'status-hoanthanh' };
+        document.querySelectorAll('.btn-status').forEach(function (btn) {
+            btn.addEventListener('click', async function () {
+                var result = await ajaxPost('/Task/UpdateStatus', { maCongViec: maCongViec, trangThai: btn.dataset.status });
+                if (!result.success) { alert(result.message); return; }
+
+                var badge = document.getElementById('statusBadge');
+                badge.textContent = result.trangThai;
+                badge.className = 'pill ' + classes[result.trangThai];
+
+                document.querySelectorAll('.btn-status').forEach(function (b) {
+                    b.classList.toggle('active', b.dataset.status === result.trangThai);
+                });
+            });
+        });
+    </script>
+}

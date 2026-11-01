@@ -1,0 +1,31 @@
+@model InviteViewModel
+
+<form asp-action="Invite" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger small"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="VaiTro" class="form-label"></label>
+            <select asp-for="VaiTro" class="form-select">
+                <option value="@VaiTros.Member">Thành viên</option>
+                <option value="@VaiTros.TenantAdmin">Quản trị</option>
+            </select>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="HoTen" class="form-label"></label>
+            <input asp-for="HoTen" class="form-control" />
+            <span asp-validation-for="HoTen" class="text-danger small"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="MatKhauTam" class="form-label"></label>
+            <input asp-for="MatKhauTam" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="MatKhauTam" class="text-danger small"></span>
+        </div>
+    </div>
+    <p class="form-text">Nếu email đã có tài khoản thì không cần nhập họ tên và mật khẩu tạm.</p>
+    <button type="submit" class="btn btn-success">Thêm vào doanh nghiệp</button>
+</form>

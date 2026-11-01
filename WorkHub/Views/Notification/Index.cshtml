@@ -1,0 +1,52 @@
+@model List<ThongBao>
+@{
+    ViewData["Title"] = "Thông báo";
+}
+
+<div class="page-header">
+    <h1>Thông báo</h1>
+    <button class="btn btn-outline-secondary btn-sm" id="readAllBtn">Đánh dấu tất cả đã đọc</button>
+</div>
+
+<div class="card">
+    @if (!Model.Any())
+    {
+        <p class="p-3 mb-0 text-muted">Bạn chưa có thông báo nào.</p>
+    }
+    else
+    {
+        <div class="list-group list-group-flush">
+            @foreach (var tb in Model)
+            {
+                <a href="@(tb.LienKet ?? "#")" class="list-group-item list-group-item-action notif-link @(tb.TrangThaiDaDoc ? "" : "notif-unread")"
+                   data-id="@tb.MaThongBao" data-read="@tb.TrangThaiDaDoc.ToString().ToLower()">
+                    <div>@tb.NoiDung</div>
+                    <small class="text-muted">@tb.ThoiGian.ToString("dd/MM/yyyy HH:mm")</small>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Bấm vào thông báo: đánh dấu đã đọc (AJAX) rồi chuyển trang
+        document.querySelectorAll('.notif-link').forEach(function (a) {
+            a.addEventListener('click', async function (e) {
+                if (a.dataset.read === 'true') return;
+                e.preventDefault();
+                await ajaxPost('/Notification/MarkAsRead', { maThongBao: a.dataset.id });
+                window.location.href = a.getAttribute('href');
+            });
+        });
+
+        document.getElementById('readAllBtn').addEventListener('click', async function () {
+            await ajaxPost('/Notification/MarkAllAsRead', {});
+            document.querySelectorAll('.notif-link').forEach(function (a) {
+                a.classList.remove('notif-unread');
+                a.dataset.read = 'true';
+            });
+            loadNotifications();
+        });
+    </script>
+}

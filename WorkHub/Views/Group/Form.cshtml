@@ -1,0 +1,60 @@
+@model GroupFormViewModel
+@{
+    bool laSua = Model.MaNhom > 0;
+    ViewData["Title"] = laSua ? "Sửa nhóm" : "Tạo nhóm";
+    var members = (List<ThanhVienDoanhNghiep>)ViewBag.Members;
+}
+
+<div class="page-header"><h1>@ViewData["Title"]</h1></div>
+
+<div class="card p-3" style="max-width: 760px">
+    <form asp-action="@(laSua ? "Edit" : "Create")" asp-route-id="@(laSua ? Model.MaNhom : null)" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+        <div class="mb-3">
+            <label asp-for="TenNhom" class="form-label"></label>
+            <input asp-for="TenNhom" class="form-control" />
+            <span asp-validation-for="TenNhom" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="MoTa" class="form-label"></label>
+            <textarea asp-for="MoTa" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label asp-for="MaTruongNhom" class="form-label"></label>
+            <select asp-for="MaTruongNhom" asp-items="ViewBag.MemberSelect" class="form-select">
+                <option value="">-- Chưa chọn --</option>
+            </select>
+            <span asp-validation-for="MaTruongNhom" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Thành viên</label>
+            <div class="border rounded p-2" style="max-height: 220px; overflow-y: auto">
+                @foreach (var m in members)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="MaThanhViens" value="@m.MaThanhVien"
+                               id="tv_@m.MaThanhVien" checked="@Model.MaThanhViens.Contains(m.MaThanhVien)" />
+                        <label class="form-check-label" for="tv_@m.MaThanhVien">@m.NguoiDung.HoTen <span class="text-muted small">(@m.NguoiDung.Email)</span></label>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="MaThanhViens" class="text-danger small"></span>
+            <div class="form-text">Trưởng nhóm sẽ tự động được thêm vào nhóm.</div>
+        </div>
+        @if (laSua)
+        {
+            <div class="form-check mb-3">
+                <input asp-for="DaDong" class="form-check-input" />
+                <label asp-for="DaDong" class="form-check-label"></label>
+            </div>
+        }
+
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a asp-action="Index" class="btn btn-link">Hủy</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,178 @@
+@model NhomLamViec
+@{
+    ViewData["Title"] = Model.TenNhom;
+    var chuaVaoNhom = (List<ThanhVienDoanhNghiep>)ViewBag.ChuaVaoNhom;
+    bool coTheGiaoViec = ViewBag.CoTheGiaoViec;
+}
+
+<div class="page-header">
+    <div>
+        <h1>@Model.TenNhom @if (Model.DaDong) { <span class="tag align-middle">Đã đóng</span> }</h1>
+        <div class="sub">@(string.IsNullOrEmpty(Model.MoTa) ? "Chưa có mô tả" : Model.MoTa)</div>
+    </div>
+    <div class="d-flex gap-2">
+        @if (Me.IsTenantAdmin)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.MaNhom" class="btn btn-light">Sửa nhóm</a>
+        }
+        @if (coTheGiaoViec && !Model.DaDong)
+        {
+            <a asp-controller="Task" asp-action="Create" asp-route-maNhom="@Model.MaNhom" class="btn btn-primary">Giao việc</a>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-7">
+        <div class="card mb-3">
+            <div class="panel-head">
+                <h2>Công việc của nhóm</h2>
+                <span class="text-muted small">@Model.CongViecs.Count(x => x.TrangThai == TrangThaiCV.HoanThanh)/@Model.CongViecs.Count hoàn thành</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Công việc</th><th>Người làm</th><th>Hạn</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                        @foreach (var cv in Model.CongViecs.OrderBy(x => x.HanHoanThanh))
+                        {
+                            <tr>
+                                <td><a asp-controller="Task" asp-action="Details" asp-route-id="@cv.MaCongViec" class="text-reset fw-medium">@cv.TenCongViec</a></td>
+                                <td>@cv.NguoiThucHien.NguoiDung.HoTen</td>
+                                <td class="@(ViewHelper.QuaHan(cv) ? "overdue" : "")">@cv.HanHoanThanh.ToString("dd/MM/yyyy")</td>
+                                <td><span class="@ViewHelper.StatusClass(cv.TrangThai)">@cv.TrangThai</span></td>
+                            </tr>
+                        }
+                        @if (!Model.CongViecs.Any())
+                        {
+                            <tr><td colspan="4" class="text-muted">Nhóm chưa có công việc.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="panel-head">
+                <h2>Trao đổi trong nhóm</h2>
+                <span class="text-muted small">Gõ @@Họ Tên để nhắc tên</span>
+            </div>
+            <div class="panel-body">
+                <div id="chatBox" class="chat-box mb-2"></div>
+                <form id="chatForm" class="d-flex gap-2">
+                    <input id="chatInput" class="form-control" maxlength="2000" placeholder="Nhập tin nhắn..." autocomplete="off" />
+                    <button type="submit" class="btn btn-primary">Gửi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card">
+            <div class="panel-head">
+                <h2>Thành viên</h2>
+                <span class="text-muted small"><span id="memberCount">@Model.ThanhViens.Count</span> người</span>
+            </div>
+            <div id="groupMembers">
+                @foreach (var tv in Model.ThanhViens.OrderBy(x => x.ThanhVien.NguoiDung.HoTen))
+                {
+                    var ten = tv.ThanhVien.NguoiDung.HoTen;
+                    <div class="member-row" id="gm_@tv.MaThanhVien">
+                        <span class="avatar">@ten.Trim().Split(' ').Last().Substring(0, 1).ToUpper()</span>
+                        <div class="info">
+                            <div class="fw-medium">@ten @if (tv.MaThanhVien == Model.MaTruongNhom) { <span class="tag">Trưởng nhóm</span> }</div>
+                            <small>@tv.ThanhVien.NguoiDung.Email</small>
+                        </div>
+                        @if (Me.IsTenantAdmin && tv.MaThanhVien != Model.MaTruongNhom)
+                        {
+                            <button class="btn btn-sm btn-outline-danger btn-remove" data-id="@tv.MaThanhVien">Loại</button>
+                        }
+                    </div>
+                }
+            </div>
+            @if (Me.IsTenantAdmin)
+            {
+                <div class="member-row">
+                    <select id="addMemberSelect" class="form-select form-select-sm">
+                        <option value="">Chọn thành viên để thêm</option>
+                        @foreach (var m in chuaVaoNhom)
+                        {
+                            <option value="@m.MaThanhVien">@m.NguoiDung.HoTen</option>
+                        }
+                    </select>
+                    <button id="addMemberBtn" class="btn btn-sm btn-primary">Thêm</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var maNhom = @Model.MaNhom;
+
+        // Khung chat nhóm (AJAX)
+        initChat({ box: 'chatBox', form: 'chatForm', input: 'chatInput', query: { maNhom: maNhom } });
+
+        function setCount(delta) {
+            var count = document.getElementById('memberCount');
+            count.textContent = parseInt(count.textContent) + delta;
+        }
+
+        // AJAX: loại thành viên khỏi nhóm
+        document.getElementById('groupMembers').addEventListener('click', async function (e) {
+            if (!e.target.classList.contains('btn-remove')) return;
+            if (!confirm('Loại thành viên này khỏi nhóm?')) return;
+
+            var id = e.target.dataset.id;
+            var result = await ajaxPost('/Group/RemoveMember', { maNhom: maNhom, maThanhVien: id });
+            if (!result.success) { alert(result.message); return; }
+
+            document.getElementById('gm_' + id).remove();
+            setCount(-1);
+        });
+
+        // AJAX: thêm thành viên vào nhóm
+        var addBtn = document.getElementById('addMemberBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', async function () {
+                var select = document.getElementById('addMemberSelect');
+                if (!select.value) return;
+
+                var result = await ajaxPost('/Group/AddMember', { maNhom: maNhom, maThanhVien: select.value });
+                if (!result.success) { alert(result.message); return; }
+
+                // Tạo dòng mới bằng DOM + textContent (chống XSS)
+                var row = document.createElement('div');
+                row.className = 'member-row';
+                row.id = 'gm_' + result.maThanhVien;
+
+                var avatar = document.createElement('span');
+                avatar.className = 'avatar';
+                avatar.textContent = result.hoTen.trim().split(' ').pop().charAt(0).toUpperCase();
+
+                var info = document.createElement('div');
+                info.className = 'info';
+                var name = document.createElement('div');
+                name.className = 'fw-medium';
+                name.textContent = result.hoTen;
+                var mail = document.createElement('small');
+                mail.textContent = result.email;
+                info.appendChild(name);
+                info.appendChild(mail);
+
+                var btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-outline-danger btn-remove';
+                btn.dataset.id = result.maThanhVien;
+                btn.textContent = 'Loại';
+
+                row.appendChild(avatar);
+                row.appendChild(info);
+                row.appendChild(btn);
+                document.getElementById('groupMembers').appendChild(row);
+
+                select.querySelector('option[value="' + select.value + '"]').remove();
+                setCount(1);
+            });
+        }
+    </script>
+}

@@ -1,0 +1,41 @@
+@model List<WorkHub.Controllers.TenantRow>
+@{
+    ViewData["Title"] = "Quản lý doanh nghiệp";
+}
+
+<div class="page-header"><h1>Doanh nghiệp</h1></div>
+
+<div class="card p-3">
+    <form method="get" class="d-flex gap-2 mb-3">
+        <input type="search" name="q" value="@ViewBag.Q" class="form-control" placeholder="Tìm theo tên hoặc email..." />
+        <button class="btn btn-primary">Tìm</button>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr><th>Tên doanh nghiệp</th><th>Email</th><th>Thành viên</th><th>Nhóm</th><th>Ngày tạo</th><th>Trạng thái</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model)
+                {
+                    var dn = row.DoanhNghiep;
+                    <tr>
+                        <td>@dn.TenDoanhNghiep</td>
+                        <td>@dn.Email</td>
+                        <td>@row.SoThanhVien</td>
+                        <td>@row.SoNhom</td>
+                        <td>@dn.NgayTao.ToString("dd/MM/yyyy")</td>
+                        <td><span class="pill @(dn.TrangThai ? "status-hoanthanh" : "status-chualam")">@(dn.TrangThai ? "Hoạt động" : "Bị khóa")</span></td>
+                        <td>
+                            <form asp-action="SetTenantStatus" asp-route-id="@dn.MaDoanhNghiep" method="post"
+                                  onsubmit="return confirm('Xác nhận thay đổi trạng thái doanh nghiệp?')">
+                                <button class="btn btn-sm @(dn.TrangThai ? "btn-outline-danger" : "btn-outline-success")">@(dn.TrangThai ? "Khóa" : "Mở khóa")</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

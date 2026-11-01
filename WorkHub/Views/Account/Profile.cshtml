@@ -1,0 +1,38 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    var pw = (ChangePasswordViewModel)ViewBag.ChangePassword;
+}
+
+<div class="page-header"><h1>Hồ sơ cá nhân</h1></div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-6">
+        <div class="card p-3">
+            <h2 class="h5">Thông tin cá nhân</h2>
+            <form asp-action="Profile" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input value="@Model.Email" class="form-control" disabled />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="HoTen" class="form-label"></label>
+                    <input asp-for="HoTen" class="form-control" />
+                    <span asp-validation-for="HoTen" class="text-danger small"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Lưu</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card p-3">
+            <h2 class="h5">Đổi mật khẩu</h2>
+            <partial name="_ChangePassword" model="pw" />
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

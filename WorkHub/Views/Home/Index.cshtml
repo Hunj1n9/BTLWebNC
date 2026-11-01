@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Nền tảng cộng tác cho doanh nghiệp";
+    ViewData["Description"] = "WorkHub giúp doanh nghiệp quản lý thành viên, nhóm làm việc, giao việc, theo dõi tiến độ và trao đổi thông tin trên một nền tảng trực tuyến.";
+    ViewData["Public"] = true;
+}
+
+<section class="hero">
+    <span class="eyebrow">Phần mềm dạng dịch vụ (SaaS) cho doanh nghiệp</span>
+    <h1>Giao việc, theo dõi tiến độ và trao đổi trong cùng một nơi</h1>
+    <p>WorkHub giúp doanh nghiệp vừa và nhỏ quản lý thành viên, nhóm làm việc và công việc hằng ngày ngay trên trình duyệt, không cần cài đặt.</p>
+    @if (Me.IsAuthenticated)
+    {
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Dashboard">Vào trang làm việc</a>
+    }
+    else
+    {
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Đăng ký miễn phí</a>
+            <a class="btn btn-light" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+        </div>
+    }
+</section>
+
+<section>
+    <h2 class="h5 mb-3">Tính năng chính</h2>
+    <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="feature">
+                <div class="num">01</div>
+                <h3>Quản lý doanh nghiệp</h3>
+                <p>Mỗi doanh nghiệp có không gian riêng, dữ liệu tách biệt hoàn toàn với doanh nghiệp khác.</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="feature">
+                <div class="num">02</div>
+                <h3>Nhóm làm việc</h3>
+                <p>Tạo nhóm, chỉ định trưởng nhóm, thêm hoặc loại thành viên nhanh chóng.</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="feature">
+                <div class="num">03</div>
+                <h3>Giao việc</h3>
+                <p>Đặt hạn, độ ưu tiên và cập nhật tiến độ ngay trên trang, không cần tải lại.</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="feature">
+                <div class="num">04</div>
+                <h3>Trao đổi và thông báo</h3>
+                <p>Nhắn tin trong nhóm, bình luận công việc, nhắc tên và nhận thông báo kịp thời.</p>
+            </div>
+        </div>
+    </div>
+</section>

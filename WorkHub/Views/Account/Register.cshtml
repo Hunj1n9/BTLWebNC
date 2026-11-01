@@ -1,0 +1,46 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+    ViewData["Description"] = "Đăng ký tài khoản WorkHub miễn phí và tạo không gian làm việc cho doanh nghiệp của bạn.";
+    ViewData["Public"] = true;
+}
+
+<div class="auth-box card p-4">
+    <h1 class="h4 mb-3 text-center">Đăng ký tài khoản</h1>
+    <form asp-action="Register" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+        <div class="mb-3">
+            <label asp-for="HoTen" class="form-label"></label>
+            <input asp-for="HoTen" class="form-control" />
+            <span asp-validation-for="HoTen" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Email" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="MatKhau" class="form-label"></label>
+            <input asp-for="MatKhau" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="MatKhau" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="XacNhanMatKhau" class="form-label"></label>
+            <input asp-for="XacNhanMatKhau" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="XacNhanMatKhau" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="TenDoanhNghiep" class="form-label"></label>
+            <input asp-for="TenDoanhNghiep" class="form-control" placeholder="Bỏ trống nếu bạn sẽ được mời vào doanh nghiệp khác" />
+            <span asp-validation-for="TenDoanhNghiep" class="text-danger small"></span>
+            <div class="form-text">Nếu nhập, bạn sẽ là quản trị của doanh nghiệp mới này.</div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
+    </form>
+    <p class="mt-3 mb-0 text-center small">Đã có tài khoản? <a asp-action="Login">Đăng nhập</a></p>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

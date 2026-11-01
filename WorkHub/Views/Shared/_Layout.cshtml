@@ -1,0 +1,172 @@
+﻿@using System.Security.Claims
+@{
+    // Trang công khai (Trang chủ, Giới thiệu, Đăng nhập...) cho phép Google lập chỉ mục, trang nội bộ thì noindex
+    bool isPublic = ViewData["Public"] as bool? == true;
+    string description = ViewData["Description"] as string ?? "WorkHub - nền tảng SaaS hỗ trợ giao tiếp và làm việc cộng tác cho doanh nghiệp.";
+    string tenantName = User.FindFirst(AuthService.TenantNameClaim)?.Value;
+    string tenantLogo = User.FindFirst(AuthService.TenantLogoClaim)?.Value;
+    string email = User.FindFirst(ClaimTypes.Email)?.Value;
+    string controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    string action = ViewContext.RouteData.Values["action"]?.ToString();
+    bool chiCuaToi = Context.Request.Query["ChiCuaToi"] == "true";
+    string Active(string c, string a = null) => controller == c && (a == null || action == a) ? "active" : "";
+    // Chữ cái đầu của tên (tên người Việt nằm ở cuối họ tên)
+    string initial = string.IsNullOrEmpty(Me.HoTen) ? "?" : Me.HoTen.Trim().Split(' ').Last().Substring(0, 1).ToUpper();
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WorkHub</title>
+    <meta name="description" content="@description" />
+    @if (!isPublic)
+    {
+        <meta name="robots" content="noindex, nofollow" />
+    }
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    @* Token chống CSRF dùng chung cho các request AJAX *@
+    @Html.AntiForgeryToken()
+
+    @if (Me.IsAuthenticated)
+    {
+        <div class="shell">
+            <aside class="sidebar" id="sidebar">
+                <a class="sb-brand" asp-controller="Home" asp-action="Dashboard">
+                    @if (!string.IsNullOrEmpty(tenantLogo))
+                    {
+                        <img src="@tenantLogo" alt="Logo @tenantName" class="brand-logo" />
+                    }
+                    else
+                    {
+                        <span class="brand-mark">@((tenantName ?? "WorkHub").Substring(0, 1).ToUpper())</span>
+                    }
+                    <span class="sb-name">@(tenantName ?? "WorkHub")</span>
+                </a>
+
+                @if (Me.IsSuperAdmin)
+                {
+                    <nav class="sb-nav">
+                        <div class="sb-section">Quản trị hệ thống</div>
+                        <a class="sb-link @Active("Admin", "Dashboard")" asp-controller="Admin" asp-action="Dashboard">Thống kê</a>
+                        <a class="sb-link @Active("Admin", "Tenants")" asp-controller="Admin" asp-action="Tenants">Doanh nghiệp</a>
+                        <a class="sb-link @Active("Admin", "Users")" asp-controller="Admin" asp-action="Users">Người dùng</a>
+                    </nav>
+                }
+                else if (Me.TenantId != null)
+                {
+                    <nav class="sb-nav">
+                        <div class="sb-section">Làm việc</div>
+                        <a class="sb-link @Active("Home", "Dashboard")" asp-controller="Home" asp-action="Dashboard">Tổng quan</a>
+                        <a class="sb-link @(controller == "Task" && !chiCuaToi ? "active" : "")" asp-controller="Task" asp-action="Index">Công việc</a>
+                        <a class="sb-link @(controller == "Task" && chiCuaToi ? "active" : "")" asp-controller="Task" asp-action="Index" asp-route-ChiCuaToi="true">Việc của tôi</a>
+                        <a class="sb-link @Active("Group")" asp-controller="Group" asp-action="Index">Nhóm làm việc</a>
+                        <a class="sb-link @Active("Notification")" asp-controller="Notification" asp-action="Index">Thông báo</a>
+                    </nav>
+                    @if (Me.IsTenantAdmin)
+                    {
+                        <nav class="sb-nav">
+                            <div class="sb-section">Quản lý doanh nghiệp</div>
+                            <a class="sb-link @Active("Member")" asp-controller="Member" asp-action="Index">Thành viên</a>
+                            <a class="sb-link @Active("Tenant", "Settings")" asp-controller="Tenant" asp-action="Settings">Thông tin doanh nghiệp</a>
+                        </nav>
+                    }
+                }
+                else
+                {
+                    <nav class="sb-nav">
+                        <div class="sb-section">Bắt đầu</div>
+                        <a class="sb-link @Active("Tenant", "Create")" asp-controller="Tenant" asp-action="Create">Tạo doanh nghiệp</a>
+                    </nav>
+                }
+
+                <div class="sb-bottom">
+                    <a class="sb-link @Active("Account", "Profile")" asp-controller="Account" asp-action="Profile">Hồ sơ cá nhân</a>
+                    @if (!Me.IsSuperAdmin)
+                    {
+                        <a class="sb-link @Active("Tenant", "Switch")" asp-controller="Tenant" asp-action="Switch">Đổi doanh nghiệp</a>
+                    }
+                    <div class="user-card">
+                        <span class="avatar">@initial</span>
+                        <div class="info">
+                            <div class="name">@Me.HoTen</div>
+                            <div class="email">@email</div>
+                        </div>
+                        <form asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="logout-btn" title="Đăng xuất">Thoát</button>
+                        </form>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="main">
+                <header class="topbar">
+                    <button class="btn btn-light btn-sm menu-btn" id="sidebarToggle" type="button">Menu</button>
+                    <div class="crumbs">
+                        @(tenantName ?? "WorkHub")<span class="sep">/</span><b>@ViewData["Title"]</b>
+                    </div>
+
+                    @if (Me.TenantId != null)
+                    {
+                        <form class="top-search" asp-controller="Task" asp-action="Index" method="get">
+                            <input type="search" name="TuKhoa" class="form-control" placeholder="Tìm công việc..." aria-label="Tìm công việc" />
+                        </form>
+                    }
+
+                    <div class="topbar-right">
+                        <div class="dropdown">
+                            <button class="btn btn-light notif-btn" id="bellBtn" data-bs-toggle="dropdown" type="button">
+                                Thông báo <span class="count d-none" id="bellCount">0</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end notif-menu">
+                                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                                    <strong>Thông báo</strong>
+                                    <a href="#" id="markAllRead" class="small">Đánh dấu đã đọc</a>
+                                </div>
+                                <div id="notifList"><div class="px-3 py-2 text-muted small">Đang tải...</div></div>
+                                <div class="border-top mt-1 pt-2 text-center">
+                                    <a class="small" asp-controller="Notification" asp-action="Index">Xem tất cả</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="content">
+                    <partial name="_Alerts" />
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
+    }
+    else
+    {
+        <header class="public-nav">
+            <div class="container d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <a class="brand" asp-controller="Home" asp-action="Index"><span class="brand-mark">W</span>WorkHub</a>
+                <nav class="d-flex gap-3 align-items-center">
+                    <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+                    <a asp-controller="Home" asp-action="About">Giới thiệu</a>
+                    <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                    <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                </nav>
+            </div>
+        </header>
+        <main class="container py-2">
+            <partial name="_Alerts" />
+            @RenderBody()
+        </main>
+        <footer class="public-footer">
+            <div class="container">© @DateTime.Now.Year WorkHub · Bài tập lớn môn Lập trình Web nâng cao</div>
+        </footer>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

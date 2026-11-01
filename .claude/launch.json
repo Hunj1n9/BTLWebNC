@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "workhub",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "WorkHub", "--launch-profile", "http"],
+      "port": 5041
+    }
+  ]
+}

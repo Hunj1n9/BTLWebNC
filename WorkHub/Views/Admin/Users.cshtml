@@ -1,0 +1,42 @@
+@model List<NguoiDung>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<div class="page-header"><h1>Người dùng</h1></div>
+
+<div class="card p-3">
+    <form method="get" class="d-flex gap-2 mb-3">
+        <input type="search" name="q" value="@ViewBag.Q" class="form-control" placeholder="Tìm theo tên hoặc email..." />
+        <button class="btn btn-primary">Tìm</button>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr><th>Họ tên</th><th>Email</th><th>Loại</th><th>Ngày tạo</th><th>Trạng thái</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td>@u.HoTen</td>
+                        <td>@u.Email</td>
+                        <td>@(u.LaSuperAdmin ? "Super Admin" : "Người dùng")</td>
+                        <td>@u.NgayTao.ToString("dd/MM/yyyy")</td>
+                        <td><span class="pill @(u.TrangThai ? "status-hoanthanh" : "status-chualam")">@(u.TrangThai ? "Hoạt động" : "Bị khóa")</span></td>
+                        <td>
+                            @if (u.MaNguoiDung != Me.UserId)
+                            {
+                                <form asp-action="SetUserStatus" asp-route-id="@u.MaNguoiDung" method="post"
+                                      onsubmit="return confirm('Xác nhận thay đổi trạng thái tài khoản?')">
+                                    <button class="btn btn-sm @(u.TrangThai ? "btn-outline-danger" : "btn-outline-success")">@(u.TrangThai ? "Khóa" : "Mở khóa")</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

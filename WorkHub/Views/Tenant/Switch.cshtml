@@ -1,0 +1,44 @@
+@model List<ThanhVienDoanhNghiep>
+@{
+    ViewData["Title"] = "Chọn doanh nghiệp";
+}
+
+<div class="page-header">
+    <h1>Doanh nghiệp của tôi</h1>
+    <a asp-action="Create" class="btn btn-primary">Tạo doanh nghiệp mới</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card p-3 text-muted">Bạn chưa thuộc doanh nghiệp nào. Hãy tạo mới hoặc nhờ quản trị doanh nghiệp mời bạn.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var m in Model)
+        {
+            bool hoatDong = m.TrangThai && m.DoanhNghiep.TrangThai;
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card p-3 h-100">
+                    <h2 class="h5">@m.DoanhNghiep.TenDoanhNghiep</h2>
+                    <p class="mb-2 small text-muted">Vai trò: @ViewHelper.RoleName(m.VaiTro)</p>
+                    @if (m.MaThanhVien == Me.MemberId)
+                    {
+                        <span class="pill status-hoanthanh align-self-start">Đang làm việc</span>
+                    }
+                    else if (!hoatDong)
+                    {
+                        <span class="pill status-chualam align-self-start">@(m.DoanhNghiep.TrangThai ? "Bạn đã bị vô hiệu hóa" : "Doanh nghiệp bị khóa")</span>
+                    }
+                    else
+                    {
+                        <form asp-action="Switch" method="post">
+                            <input type="hidden" name="maThanhVien" value="@m.MaThanhVien" />
+                            <button type="submit" class="btn btn-outline-primary btn-sm">Chuyển sang</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

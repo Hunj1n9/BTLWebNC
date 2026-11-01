@@ -1,0 +1,47 @@
+@model List<NhomLamViec>
+@{
+    ViewData["Title"] = "Nhóm làm việc";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Nhóm làm việc</h1>
+        <div class="sub">Các nhóm, phòng ban bạn đang tham gia</div>
+    </div>
+    @if (Me.IsTenantAdmin)
+    {
+        <a asp-action="Create" class="btn btn-primary">Tạo nhóm</a>
+    }
+</div>
+
+<div class="card p-3">
+    <div class="row g-2 mb-3">
+        <div class="col-md-8">
+            <input type="search" id="groupSearch" class="form-control" placeholder="Tìm nhóm theo tên hoặc mô tả..." />
+        </div>
+        <div class="col-md-4">
+            <select id="groupStatus" class="form-select">
+                <option value="mo">Đang hoạt động</option>
+                <option value="dong">Đã đóng</option>
+                <option value="tatca">Tất cả</option>
+            </select>
+        </div>
+    </div>
+    <div id="groupList">
+        <partial name="_GroupList" model="Model" />
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // AJAX: lọc nhóm không tải lại trang
+        async function loadGroups() {
+            var q = document.getElementById('groupSearch').value;
+            var status = document.getElementById('groupStatus').value;
+            var html = await ajaxGet('/Group/Index?q=' + encodeURIComponent(q) + '&trangThai=' + status);
+            document.getElementById('groupList').innerHTML = html;
+        }
+        document.getElementById('groupSearch').addEventListener('input', debounce(loadGroups, 300));
+        document.getElementById('groupStatus').addEventListener('change', loadGroups);
+    </script>
+}

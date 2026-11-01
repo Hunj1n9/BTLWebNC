@@ -1,0 +1,90 @@
+@model TaskFormViewModel
+@{
+    bool laSua = Model.MaCongViec > 0;
+    ViewData["Title"] = laSua ? "Sửa công việc" : "Tạo công việc";
+}
+
+<div class="page-header"><h1>@ViewData["Title"]</h1></div>
+
+<div class="card p-3" style="max-width: 760px">
+    <form asp-action="@(laSua ? "Edit" : "Create")" asp-route-id="@(laSua ? Model.MaCongViec : null)" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+        <div class="mb-3">
+            <label asp-for="TenCongViec" class="form-label"></label>
+            <input asp-for="TenCongViec" class="form-control" />
+            <span asp-validation-for="TenCongViec" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="MoTa" class="form-label"></label>
+            <textarea asp-for="MoTa" class="form-control" rows="4"></textarea>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="MaNhom" class="form-label"></label>
+                <select asp-for="MaNhom" asp-items="ViewBag.Nhoms" class="form-select">
+                    <option value="">-- Chọn nhóm --</option>
+                </select>
+                <span asp-validation-for="MaNhom" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="MaNguoiThucHien" class="form-label"></label>
+                <select asp-for="MaNguoiThucHien" asp-items="ViewBag.NguoiThucHiens" class="form-select">
+                    <option value="">-- Chọn người thực hiện --</option>
+                </select>
+                <span asp-validation-for="MaNguoiThucHien" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="NgayBatDau" class="form-label"></label>
+                <input asp-for="NgayBatDau" class="form-control" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="HanHoanThanh" class="form-label"></label>
+                <input asp-for="HanHoanThanh" class="form-control" />
+                <span asp-validation-for="HanHoanThanh" class="text-danger small" id="hanError"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="TrangThai" class="form-label"></label>
+                <select asp-for="TrangThai" class="form-select">
+                    @foreach (var s in TrangThaiCV.TatCa) { <option value="@s">@s</option> }
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="DoUuTien" class="form-label"></label>
+                <select asp-for="DoUuTien" class="form-select">
+                    @foreach (var s in TrangThaiCV.DoUuTiens) { <option value="@s">@s</option> }
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a asp-action="Index" class="btn btn-link">Hủy</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // AJAX: chọn nhóm thì tải danh sách thành viên của nhóm đó
+        document.getElementById('MaNhom').addEventListener('change', async function () {
+            var select = document.getElementById('MaNguoiThucHien');
+            select.length = 1; // giữ lại dòng "-- Chọn --"
+            if (!this.value) return;
+
+            var members = await ajaxGet('/Group/Members/' + this.value, true);
+            members.forEach(function (m) {
+                select.add(new Option(m.hoTen, m.maThanhVien));
+            });
+        });
+
+        // Kiểm tra phía client: hạn hoàn thành phải sau ngày bắt đầu
+        document.querySelector('form').addEventListener('submit', function (e) {
+            var bd = document.getElementById('NgayBatDau').value;
+            var han = document.getElementById('HanHoanThanh').value;
+            if (bd && han && han < bd) {
+                e.preventDefault();
+                document.getElementById('hanError').textContent = 'Hạn hoàn thành phải sau ngày bắt đầu';
+            }
+        });
+    </script>
+}

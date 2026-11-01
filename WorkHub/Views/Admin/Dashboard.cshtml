@@ -1,0 +1,65 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Thống kê nền tảng";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Thống kê nền tảng</h1>
+        <div class="sub">Số liệu tổng hợp của tất cả doanh nghiệp đang sử dụng WorkHub</div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="stat lavender">
+            <div class="label">Doanh nghiệp</div>
+            <div class="number">@Model.SoDoanhNghiep</div>
+            <div class="note @(Model.SoDoanhNghiepBiKhoa > 0 ? "bad" : "")">@Model.SoDoanhNghiepBiKhoa đang bị khóa</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat mint">
+            <div class="label">Người dùng</div>
+            <div class="number">@Model.SoNguoiDung</div>
+            <div class="note">tài khoản đã đăng ký</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat lavender">
+            <div class="label">Nhóm làm việc</div>
+            <div class="number">@Model.SoNhom</div>
+            <div class="note">trên toàn nền tảng</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat plain">
+            <div class="label">Công việc</div>
+            <div class="number">@Model.SoCongViec</div>
+            <div class="note">đã được tạo</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="panel-head">
+        <h2>Doanh nghiệp mới đăng ký</h2>
+        <a asp-action="Tenants" class="btn btn-primary btn-sm">Xem tất cả</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>Tên doanh nghiệp</th><th>Email</th><th>Ngày tạo</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+                @foreach (var dn in Model.DoanhNghiepMoi)
+                {
+                    <tr>
+                        <td class="fw-medium">@dn.TenDoanhNghiep</td>
+                        <td>@dn.Email</td>
+                        <td>@dn.NgayTao.ToString("dd/MM/yyyy")</td>
+                        <td><span class="pill @(dn.TrangThai ? "status-hoanthanh" : "status-chualam")">@(dn.TrangThai ? "Hoạt động" : "Bị khóa")</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

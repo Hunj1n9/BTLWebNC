@@ -1,0 +1,37 @@
+@model List<NhomLamViec>
+
+@if (!Model.Any())
+{
+    <p class="text-muted mb-0">Không có nhóm nào.</p>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var n in Model)
+        {
+            int tong = n.CongViecs.Count;
+            int xong = n.CongViecs.Count(x => x.TrangThai == TrangThaiCV.HoanThanh);
+            int phanTram = tong == 0 ? 0 : xong * 100 / tong;
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card group-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <h2><a asp-controller="Group" asp-action="Details" asp-route-id="@n.MaNhom" class="text-reset">@n.TenNhom</a></h2>
+                        @if (n.DaDong) { <span class="tag">Đã đóng</span> }
+                    </div>
+                    <p class="small text-muted mb-2">@(string.IsNullOrEmpty(n.MoTa) ? "Chưa có mô tả" : n.MoTa)</p>
+                    <div class="d-flex justify-content-between small">
+                        <span>Tiến độ</span><span class="text-muted">@phanTram%</span>
+                    </div>
+                    <div class="bar"><div style="width:@phanTram%"></div></div>
+                    <div class="group-meta">
+                        <span>Trưởng nhóm <b>@(n.TruongNhom?.NguoiDung.HoTen ?? "Chưa có")</b></span>
+                    </div>
+                    <div class="group-meta border-0 pt-0 mt-2">
+                        <span><b>@n.ThanhViens.Count</b> thành viên</span>
+                        <span><b>@xong/@tong</b> việc xong</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

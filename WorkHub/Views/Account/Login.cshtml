@@ -1,0 +1,31 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+    ViewData["Description"] = "Đăng nhập vào WorkHub để làm việc cùng nhóm của bạn.";
+    ViewData["Public"] = true;
+}
+
+<div class="auth-box card p-4">
+    <h1 class="h4 mb-3 text-center">Đăng nhập</h1>
+    <form asp-action="Login" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+        <input type="hidden" asp-for="ReturnUrl" />
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Email" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="MatKhau" class="form-label"></label>
+            <input asp-for="MatKhau" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="MatKhau" class="text-danger small"></span>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+    </form>
+    <p class="mt-3 mb-0 text-center small">Chưa có tài khoản? <a asp-action="Register">Đăng ký</a></p>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

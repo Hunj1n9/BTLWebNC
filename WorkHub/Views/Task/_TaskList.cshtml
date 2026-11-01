@@ -1,0 +1,44 @@
+@model List<CongViec>
+
+@if (!Model.Any())
+{
+    <p class="text-muted mb-0">Không có công việc nào phù hợp.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr><th>Công việc</th><th>Nhóm</th><th>Người thực hiện</th><th>Hạn</th><th>Ưu tiên</th><th style="min-width:140px">Trạng thái</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var cv in Model)
+                {
+                    bool coTheDoi = Me.IsTenantAdmin || cv.MaNguoiThucHien == Me.MemberId;
+                    <tr>
+                        <td><a asp-controller="Task" asp-action="Details" asp-route-id="@cv.MaCongViec">@cv.TenCongViec</a></td>
+                        <td>@cv.NhomLamViec.TenNhom</td>
+                        <td>@cv.NguoiThucHien.NguoiDung.HoTen</td>
+                        <td class="@(ViewHelper.QuaHan(cv) ? "overdue" : "")">@cv.HanHoanThanh.ToString("dd/MM/yyyy")</td>
+                        <td><span class="@ViewHelper.PriorityClass(cv.DoUuTien)">@cv.DoUuTien</span></td>
+                        <td>
+                            @if (coTheDoi)
+                            {
+                                <select class="form-select form-select-sm status-select" data-id="@cv.MaCongViec" data-old="@cv.TrangThai">
+                                    @foreach (var s in TrangThaiCV.TatCa)
+                                    {
+                                        <option value="@s" selected="@(s == cv.TrangThai)">@s</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <span class="@ViewHelper.StatusClass(cv.TrangThai)">@cv.TrangThai</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

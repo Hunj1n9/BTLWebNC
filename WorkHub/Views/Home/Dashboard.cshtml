@@ -1,0 +1,132 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan";
+
+    // Thanh vạch phân bổ trạng thái: 40 vạch, tô màu theo tỷ lệ từng trạng thái
+    const int soVach = 40;
+    int tong = Model.TongCongViec;
+    int vachHoanThanh = tong == 0 ? 0 : (int)Math.Round(soVach * (double)Model.SoHoanThanh / tong);
+    int vachDangLam = tong == 0 ? 0 : (int)Math.Round(soVach * (double)Model.SoDangLam / tong);
+}
+
+<div class="page-header">
+    <div>
+        <h1>Xin chào, @Me.HoTen</h1>
+        <div class="sub">Tình hình công việc tại @Model.TenDoanhNghiep hôm nay, @DateTime.Today.ToString("dd/MM/yyyy")</div>
+    </div>
+    <a asp-controller="Task" asp-action="Create" class="btn btn-primary">Tạo công việc</a>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="stat lavender">
+            <div class="label">Đang làm</div>
+            <div class="number">@Model.SoDangLam</div>
+            <div class="note">@Model.SoChuaLam việc chưa bắt đầu</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat mint">
+            <div class="label">Đã hoàn thành</div>
+            <div class="number">@Model.SoHoanThanh</div>
+            <div class="note">trên tổng @tong công việc</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat lavender">
+            <div class="label">Quá hạn</div>
+            <div class="number">@Model.SoQuaHan</div>
+            <div class="note @(Model.SoQuaHan > 0 ? "bad" : "")">@(Model.SoQuaHan > 0 ? "Cần xử lý sớm" : "Không có việc trễ hạn")</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat plain">
+            <div class="label">Thành viên</div>
+            <div class="number">@Model.SoThanhVien</div>
+            <div class="note">@Model.SoNhom nhóm đang hoạt động</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-12 col-lg-7">
+        <div class="card h-100">
+            <div class="panel-head">
+                <h2>Tiến độ theo nhóm</h2>
+                <a asp-controller="Group" asp-action="Index" class="btn btn-light btn-sm">Xem nhóm</a>
+            </div>
+            <div class="panel-body">
+                @if (!Model.TienDoNhoms.Any())
+                {
+                    <p class="text-muted mb-0">Bạn chưa tham gia nhóm nào.</p>
+                }
+                @foreach (var n in Model.TienDoNhoms)
+                {
+                    <div class="progress-row">
+                        <div class="d-flex justify-content-between">
+                            <a asp-controller="Group" asp-action="Details" asp-route-id="@n.MaNhom" class="fw-medium text-reset">@n.TenNhom</a>
+                            <span class="text-muted small">@n.HoanThanh/@n.Tong việc · @n.PhanTram%</span>
+                        </div>
+                        <div class="bar"><div style="width:@n.PhanTram%"></div></div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card h-100">
+            <div class="panel-head">
+                <h2>Phân bổ trạng thái</h2>
+                <a asp-controller="Task" asp-action="Index" class="btn btn-primary btn-sm">Chi tiết</a>
+            </div>
+            <div class="panel-body">
+                <div class="big-number">@tong <span class="text-muted fs-6 fw-normal">công việc</span></div>
+                <div class="ticks" aria-hidden="true">
+                    @for (int i = 0; i < soVach; i++)
+                    {
+                        string cls = tong == 0 ? "c-chualam"
+                                   : i < vachHoanThanh ? "c-hoanthanh"
+                                   : i < vachHoanThanh + vachDangLam ? "c-danglam"
+                                   : "c-chualam";
+                        <span class="@cls"></span>
+                    }
+                </div>
+                <div class="legend-row"><span class="sw c-hoanthanh"></span><span class="name">Hoàn thành</span><span class="val">@Model.SoHoanThanh việc</span></div>
+                <div class="legend-row"><span class="sw c-danglam"></span><span class="name">Đang làm</span><span class="val">@Model.SoDangLam việc</span></div>
+                <div class="legend-row"><span class="sw c-chualam"></span><span class="name">Chưa làm</span><span class="val">@Model.SoChuaLam việc</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="panel-head">
+        <h2>Việc tôi cần làm</h2>
+        <a asp-controller="Task" asp-action="Index" asp-route-ChiCuaToi="true" class="btn btn-light btn-sm">Xem tất cả</a>
+    </div>
+    @if (!Model.CongViecCuaToi.Any())
+    {
+        <p class="panel-body text-muted mb-0">Bạn không có công việc nào đang chờ.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Công việc</th><th>Nhóm</th><th>Ưu tiên</th><th>Hạn</th><th>Trạng thái</th></tr></thead>
+                <tbody>
+                    @foreach (var cv in Model.CongViecCuaToi)
+                    {
+                        <tr>
+                            <td><a asp-controller="Task" asp-action="Details" asp-route-id="@cv.MaCongViec" class="text-reset fw-medium">@cv.TenCongViec</a></td>
+                            <td>@cv.NhomLamViec.TenNhom</td>
+                            <td><span class="@ViewHelper.PriorityClass(cv.DoUuTien)">@cv.DoUuTien</span></td>
+                            <td class="@(ViewHelper.QuaHan(cv) ? "overdue" : "")">@cv.HanHoanThanh.ToString("dd/MM/yyyy")</td>
+                            <td><span class="@ViewHelper.StatusClass(cv.TrangThai)">@cv.TrangThai</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
